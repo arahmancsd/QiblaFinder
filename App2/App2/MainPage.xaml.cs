@@ -23,8 +23,8 @@ namespace App2
         {
             circularGauge.RotateTo(360 - e.Reading.HeadingMagneticNorth);
             compassImage.RotateTo(360 - e.Reading.HeadingMagneticNorth);
-            ImageArrow.RotateTo(360 - e.Reading.HeadingMagneticNorth);
-            PointToQibla();
+            //ImageArrow.RotateTo(360 - e.Reading.HeadingMagneticNorth);
+            PointToQibla(e);
         }
         private void Scale_LabelCreated(object sender, Syncfusion.SfGauge.XForms.LabelCreatedEventArgs args)
         {
@@ -77,7 +77,7 @@ namespace App2
         {
             return a - b * Math.Floor(a / b);
         }
-        void PointToQibla()
+        void PointToQibla(CompassChangedEventArgs e)
         {
             double latt_from_radians = current_latitude * Math.PI / 180;
             double long_from_radians = current_longitude * Math.PI / 180;
@@ -86,15 +86,19 @@ namespace App2
             double bearing = Math.Atan2(Math.Sin(lang_to_radians - long_from_radians) * Math.Cos(latt_to_radians), (Math.Cos(latt_from_radians) * Math.Sin(latt_to_radians)) - (Math.Sin(latt_from_radians) * Math.Cos(latt_to_radians) * Math.Cos(lang_to_radians - long_from_radians)));
             bearing = Mod(bearing, 2 * Math.PI);
             double bearing_degree = bearing * 180 / Math.PI;
-            //normal arrow and XF
-            ImageArrow.Rotation = pointer1.Value = bearing_degree;
-            // this is labels
-            lblG.Text = LabelInfo.Text = string.Format("Lat: {0} Long: {1} degree:{2}", current_latitude,current_longitude,bearing_degree.ToString());
+            pointer1.Value = bearing_degree;
+            lblG.Text = string.Format("Lat: {0} Long: {1} degree:{2}", current_latitude,current_longitude,bearing_degree.ToString());
         }
         protected override void OnAppearing()
         {
             base.OnAppearing();
             GetLocation();
+            if (!DesignMode.IsDesignModeEnabled)
+            {
+                ((MyCompassViewModel)BindingContext).LocationCommand.Execute(null);
+                ((MyCompassViewModel)BindingContext).StartCommand.Execute(null);
+            }
+
         }
     }
 }
